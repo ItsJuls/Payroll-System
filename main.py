@@ -1,12 +1,14 @@
 import json, datetime, csv, customtkinter as ctk, os
 from PIL import Image
+from dashboard import DashboardFrame
+
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("blue")
 
 class PayrollSystem(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        self._set_appearance_mode("dark")
-        self._set_appearance_mode("blue")
         self.title("LPS")
         self.geometry("1000x500")
 
@@ -17,6 +19,7 @@ class PayrollSystem(ctk.CTk):
         self.logo_label = ctk.CTkLabel(self.sidebar_frame, text="",
                                        font=ctk.CTkFont(size=20, weight="bold"))
         self.logo_label.pack(pady=(20, 30))
+
         self.btn_dash = self.create_sidebar_button("Dashboard", self.show_dashboard, "dashboard.png")
         self.btn_employee = self.create_sidebar_button("Employees", self.show_employees, "employee.png")
         self.btn_payroll = self.create_sidebar_button("Process Pay", self.show_payroll, "payroll.png")
@@ -50,8 +53,8 @@ class PayrollSystem(ctk.CTk):
 
     def show_dashboard(self):
         self.clear_content()
-        label = ctk.CTkLabel(self.content_frame, text="Dashboard Summary", font=("Arial", 24))
-        label.pack(anchor="nw")
+        self.dashboard = DashboardFrame(master=self.content_frame, fg_color="transparent")
+        self.dashboard.pack(fill="both", expand=True)
 
     def show_employees(self):
         self.clear_content()
