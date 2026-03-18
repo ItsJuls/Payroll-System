@@ -1,3 +1,7 @@
 customtkinter
 Pillow
 matplotlib
+pandas
+sqlite3
+openpyxl
+tkcalendar

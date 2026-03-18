@@ -1,5 +1,6 @@
 import customtkinter as ctk
 import matplotlib.pyplot as plt
+import sqlite3 as sql
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
@@ -54,7 +55,7 @@ class DashboardFrame(ctk.CTkFrame):
     def add_stat_card(self, title, value, row, col):
         card = ctk.CTkFrame(self, corner_radius=15, height=120)
         card.grid(row=row, column=col, padx=10, pady=10, sticky="nsew")
-        card.pack_propagate(False)  # This is okay because it's INSIDE the card frame
+        card.pack_propagate(False)
 
         title_lbl = ctk.CTkLabel(card, text=title, font=("Arial", 14))
         title_lbl.pack(pady=(20, 5))
