@@ -3,6 +3,7 @@ from PIL import Image
 from dashboard import DashboardFrame
 from management import ManagementFrame
 from payroll import PayrollFrame
+from settings import SettingsFrame
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
@@ -33,7 +34,7 @@ class PayrollSystem(ctk.CTk):
         self.btn_employee = self.create_sidebar_button("Employees", self.show_employees, "employee.png")
         self.btn_payroll = self.create_sidebar_button("Process Pay", self.show_payroll, "payroll.png")
         self.btn_export = self.create_sidebar_button("Export", self.show_payroll, "export.png")
-        self.btn_setting = self.create_sidebar_button("Settings", self.show_payroll, "settings.png")
+        self.btn_setting = self.create_sidebar_button("Settings", self.show_settings, "settings.png")
         self.btn_exit = self.create_sidebar_button("Exit", self.show_payroll, "exit.png")
 
         self.content_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -74,6 +75,11 @@ class PayrollSystem(ctk.CTk):
         self.clear_content()
         self.payroll = PayrollFrame(master=self.content_frame, fg_color="transparent")
         self.payroll.pack(fill="both", expand=True)
+
+    def show_settings(self):
+        self.clear_content()
+        self.settings = SettingsFrame(master=self.content_frame, fg_color="transparent")
+        self.settings.pack(fill="both", expand=True)
 
 
 if __name__ == "__main__":
