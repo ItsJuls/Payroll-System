@@ -2,6 +2,9 @@ import customtkinter as ctk
 import matplotlib.pyplot as plt
 import sqlite3 as sql
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from CTkMessagebox import CTkMessagebox as cmb
+from ctkdateentry import CTkDateEntry as DateEntry, CTkStringVar
+from datetime import datetime
 
 
 class DashboardFrame(ctk.CTkFrame):
@@ -19,37 +22,50 @@ class DashboardFrame(ctk.CTkFrame):
         self.sub_label = ctk.CTkLabel(self, text="Real-time Payroll Summary", font=("Arial", 16))
         self.sub_label.grid(row=1, column=0, padx=20, pady=(0, 10), sticky="nw", columnspan=3)
 
-        # 2. Stat Cards (Row 2)
-        self.add_stat_card("Total Employees", "24", 2, 0)
-        self.add_stat_card("Active Shift", "Shift 1", 2, 1)
-        self.add_stat_card("Daily Payroll", "₱14,400", 2, 2)
+        self.date_controls_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.date_controls_frame.grid(row=3, column=0, columnspan=3, padx=20, sticky="w")
 
-        # 3. Chart Label (Row 3)
-        self.chart_label = ctk.CTkLabel(self, text="Weekly Payroll Expense (PhP)", font=("Arial", 16, "bold"))
-        self.chart_label.grid(row=3, column=0, columnspan=3, pady=(30, 0))
+        self.date_var = CTkStringVar(value="")
+        self.date_entry = DateEntry(self.date_controls_frame, width=150, variable=self.date_var, state="readonly")
+        self.date_entry.grid(row=3, column=1, pady=(1, 0), padx=(0, 10), sticky="w")
 
-        # 4. Data & Plotting
-        days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-        y_values = [14400, 15200, 14800, 16100, 15900, 12000, 0]
+        self.chart_label = ctk.CTkLabel(self.date_controls_frame, text="Enter a Date:", font=("Arial", 14, "bold"))
+        self.chart_label.grid(row=3, column=0, columnspan=1, pady=(1, 0), padx=(0, 10), sticky="nw")
 
-        fig, ax = plt.subplots(figsize=(6, 3), dpi=100, facecolor='#242424')
-        fig.patch.set_facecolor('#242424')
-        ax.set_facecolor('#242424')
+        self.refresh_button = ctk.CTkButton(self.date_controls_frame, text="Refresh")
+        self.refresh_button.grid(row=3, column=2, columnspan=1, pady=(1, 0), padx=(0, 10), sticky="nw")
 
-        ax.plot(days, y_values, color='#1f538d', marker='o', linewidth=3, markersize=8)
 
-        # Styling the axis
-        ax.tick_params(colors='white', which='both')
-        for spine in ax.spines.values():
-            spine.set_color('white')
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
+        self.accent_frame = ctk.CTkFrame(self,
+                                         fg_color="transparent",
+                                         corner_radius=10,
+                                         border_color="#1f538d",
+                                         border_width=2,
+                                         width=1200,
+                                         height=300)
+        self.accent_frame.grid(row=4, column=0, columnspan=3, padx=20, pady=20, sticky="n")
+        self.accent_frame.grid_propagate(False)
+        self.accent_frame.pack_propagate(False)
 
-        # 5. Embedding (Row 4)
-        canvas = FigureCanvasTkAgg(fig, master=self)
-        canvas_widget = canvas.get_tk_widget()
-        canvas_widget.configure(bg='#242424', highlightthickness=0)
-        canvas_widget.grid(row=4, column=0, columnspan=3, padx=20, pady=20, sticky="nsew")
+        self.employees_present = ctk.CTkLabel(self.accent_frame, text="Employees\nPresent", font=("Arial", 16))
+        self.employees_present.place(relx=0.20, rely=0.05, anchor="n")
+
+        self.total_reg_pay = ctk.CTkLabel(self.accent_frame, text="Total\nRegular Pay", font=("Arial", 16))
+        self.total_reg_pay.place(relx=0.35, rely=0.05, anchor="n")
+
+        self.total_ot_pay = ctk.CTkLabel(self.accent_frame, text="Total\nOvertime Pay", font=("Arial", 16))
+        self.total_ot_pay.place(relx=0.50, rely=0.05, anchor="n")
+
+        self.total_night_diff = ctk.CTkLabel(self.accent_frame, text="Total Night\nDifferential", font=("Arial", 16))
+        self.total_night_diff.place(relx=0.65, rely=0.05, anchor="n")
+
+        self.total_night_diff = ctk.CTkLabel(self.accent_frame, text="Total Daily Payroll", font=("Arial", 16))
+        self.total_night_diff.place(relx=0.65, rely=0.9, anchor="s")
+
+
+        self.cost_per_shift = ctk.CTkLabel(self.accent_frame, text="Cost Per Shift", font=("Arial", 16))
+        self.cost_per_shift.place(relx=0.80, rely=0.05, anchor="n")
+
 
 
     def add_stat_card(self, title, value, row, col):
