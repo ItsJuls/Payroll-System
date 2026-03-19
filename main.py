@@ -10,8 +10,15 @@ class PayrollSystem(ctk.CTk):
     def __init__(self):
         super().__init__()
 
+
         self.title("LPS")
-        self.geometry("1000x500")
+
+        width = self.winfo_screenwidth()
+        height = self.winfo_screenheight()
+
+        self.geometry(f"{width}x{height}")
+        self.state('zoomed')
+
 
         self.sidebar_frame = ctk.CTkFrame(self, width=110, corner_radius=0)
         self.sidebar_frame.pack(side="left", fill="y")
