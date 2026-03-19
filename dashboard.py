@@ -7,9 +7,13 @@ from ctkdateentry import CTkDateEntry as DateEntry, CTkStringVar
 from rates import RatesManager
 from datetime import datetime, timedelta
 
+
 class DashboardFrame(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
+
+        self.rm = RatesManager()
+
         self.grid_columnconfigure((0, 1, 2), weight=1)
         self.grid_rowconfigure(4, weight=1)
 
@@ -22,7 +26,6 @@ class DashboardFrame(ctk.CTkFrame):
         self.date_controls_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.date_controls_frame.grid(row=3, column=0, columnspan=3, padx=20, sticky="w")
 
-        self.rm = RatesManager()
         self.date_var = CTkStringVar(value=self.rm.get_today_date())
 
         self.date_entry = DateEntry(self.date_controls_frame, width=150, variable=self.date_var, state="readonly")
@@ -31,24 +34,23 @@ class DashboardFrame(ctk.CTkFrame):
         self.chart_label = ctk.CTkLabel(self.date_controls_frame, text="Enter a Date:", font=("Arial", 14, "bold"))
         self.chart_label.grid(row=3, column=0, columnspan=1, pady=(1, 0), padx=(0, 10), sticky="nw")
 
-        self.refresh_button = ctk.CTkButton(self.date_controls_frame, text="Refresh",
-                                            command=self.refresh_dashboard)
+        self.refresh_button = ctk.CTkButton(self.date_controls_frame, text="Refresh", command=self.refresh_dashboard)
         self.refresh_button.grid(row=3, column=2, columnspan=1, pady=(1, 0), padx=(0, 10), sticky="nw")
 
-        self.accent_frame = ctk.CTkFrame(self,
-                                         fg_color="transparent",
-                                         corner_radius=10,
-                                         border_color="#1f538d",
-                                         border_width=2,
-                                         width=1200,
-                                         height=300)
+        self.accent_frame = ctk.CTkFrame(self, fg_color="transparent", corner_radius=10, border_color="#1f538d",
+                                         border_width=2, width=1200, height=300)
         self.accent_frame.grid(row=4, column=0, columnspan=3, padx=20, pady=20, sticky="n")
         self.accent_frame.grid_propagate(False)
         self.accent_frame.pack_propagate(False)
 
-        self.add_label("6 AM - 2 PM", relx=0.075, rely=0.2, anchor="n")
-        self.add_label("2 PM - 10 PM", relx=0.075, rely=0.4, anchor="n")
-        self.add_label("10 PM - 6 AM", relx=0.075, rely=0.6, anchor="n")
+        s1 = self.rm.get_shift_defaults(1)
+        s2 = self.rm.get_shift_defaults(2)
+        s3 = self.rm.get_shift_defaults(3)
+
+        self.add_label(f"{s1['in']} - {s1['out']}", relx=0.075, rely=0.2, anchor="n")
+        self.add_label(f"{s2['in']} - {s2['out']}", relx=0.075, rely=0.4, anchor="n")
+        self.add_label(f"{s3['in']} - {s3['out']}", relx=0.075, rely=0.6, anchor="n")
+
         self.add_label("Employees\nPresent", relx=0.20, rely=0.05, anchor="n")
         self.add_label("Total\nRegular Pay", relx=0.35, rely=0.05, anchor="n")
         self.add_label("Total\nOvertime Pay", relx=0.50, rely=0.05, anchor="n")
@@ -67,23 +69,13 @@ class DashboardFrame(ctk.CTkFrame):
             "total_daily": ctk.StringVar(value="PhP 0.00"), "total_weekly": ctk.StringVar(value="PhP 0.00")
         }
 
-        self.add_label(variable=self.stats["s1"]["present"], relx=0.20, rely=0.2, anchor="n")
-        self.add_label(variable=self.stats["s1"]["reg"], relx=0.35, rely=0.2, anchor="n")
-        self.add_label(variable=self.stats["s1"]["ot"], relx=0.50, rely=0.2, anchor="n")
-        self.add_label(variable=self.stats["s1"]["nd"], relx=0.65, rely=0.2, anchor="n")
-        self.add_label(variable=self.stats["s1"]["cost"], relx=0.80, rely=0.2, anchor="n")
-
-        self.add_label(variable=self.stats["s2"]["present"], relx=0.20, rely=0.4, anchor="n")
-        self.add_label(variable=self.stats["s2"]["reg"], relx=0.35, rely=0.4, anchor="n")
-        self.add_label(variable=self.stats["s2"]["ot"], relx=0.50, rely=0.4, anchor="n")
-        self.add_label(variable=self.stats["s2"]["nd"], relx=0.65, rely=0.4, anchor="n")
-        self.add_label(variable=self.stats["s2"]["cost"], relx=0.80, rely=0.4, anchor="n")
-
-        self.add_label(variable=self.stats["s3"]["present"], relx=0.20, rely=0.6, anchor="n")
-        self.add_label(variable=self.stats["s3"]["reg"], relx=0.35, rely=0.6, anchor="n")
-        self.add_label(variable=self.stats["s3"]["ot"], relx=0.50, rely=0.6, anchor="n")
-        self.add_label(variable=self.stats["s3"]["nd"], relx=0.65, rely=0.6, anchor="n")
-        self.add_label(variable=self.stats["s3"]["cost"], relx=0.80, rely=0.6, anchor="n")
+        for i, key in enumerate(["s1", "s2", "s3"]):
+            rely = 0.2 + (i * 0.2)
+            self.add_label(variable=self.stats[key]["present"], relx=0.20, rely=rely, anchor="n")
+            self.add_label(variable=self.stats[key]["reg"], relx=0.35, rely=rely, anchor="n")
+            self.add_label(variable=self.stats[key]["ot"], relx=0.50, rely=rely, anchor="n")
+            self.add_label(variable=self.stats[key]["nd"], relx=0.65, rely=rely, anchor="n")
+            self.add_label(variable=self.stats[key]["cost"], relx=0.80, rely=rely, anchor="n")
 
         self.add_label(variable=self.stats["total_daily"], relx=0.35, rely=0.9, anchor="s")
         self.add_label(variable=self.stats["total_weekly"], relx=0.8, rely=0.9, anchor="s")
@@ -124,17 +116,21 @@ class DashboardFrame(ctk.CTkFrame):
             rows = cursor.fetchall()
 
             count = len(rows)
-            reg = count * self.rm.get_daily_salary()
-            ot = sum(self.rm.calculate_overtime_pay(cin, cout) for cin, cout in rows)
-            nd = (count * self.rm.calculate_night_diff()) if s_num == 3 else 0
+            shift_reg, shift_ot, shift_nd = 0, 0, 0
 
-            shift_total = reg + ot + nd
+            for cin, cout in rows:
+                pay = self.rm.calculate_full_pay(s_num, cin, cout)
+                shift_reg += pay['regular']
+                shift_ot += pay['overtime']
+                shift_nd += pay['night_diff']
+
+            shift_total = shift_reg + shift_ot + shift_nd
             total_selected_day += shift_total
 
             self.stats[key]["present"].set(str(count))
-            self.stats[key]["reg"].set(f"{reg:,.2f}")
-            self.stats[key]["ot"].set(f"{ot:,.2f}")
-            self.stats[key]["nd"].set(f"{nd:,.2f}")
+            self.stats[key]["reg"].set(f"{shift_reg:,.2f}")
+            self.stats[key]["ot"].set(f"{shift_ot:,.2f}")
+            self.stats[key]["nd"].set(f"{shift_nd:,.2f}")
             self.stats[key]["cost"].set(f"{shift_total:,.2f}")
 
         self.stats["total_daily"].set(f"PhP {total_selected_day:,.2f}")
@@ -146,17 +142,13 @@ class DashboardFrame(ctk.CTkFrame):
         for i in range(7):
             current_day = start_of_week + timedelta(days=i)
             day_str = current_day.strftime("%Y-%m-%d")
-
             cursor.execute("SELECT shift, clock_in, clock_out FROM attendance WHERE date = ?", (day_str,))
             day_rows = cursor.fetchall()
 
             day_total = 0
             for s_num, cin, cout in day_rows:
-                day_total += self.rm.get_daily_salary()
-                day_total += self.rm.calculate_overtime_pay(cin, cout)
-                if s_num == 3:
-                    day_total += self.rm.calculate_night_diff()
-
+                pay = self.rm.calculate_full_pay(s_num, cin, cout)
+                day_total += pay['gross_total']
             weekly_costs.append(day_total)
 
         conn.close()
@@ -175,7 +167,7 @@ class DashboardFrame(ctk.CTkFrame):
         for bar in bars:
             height = bar.get_height()
             if height > 0:
-                self.ax.text(bar.get_x() + bar.get_width() / 2., height,
-                             f'P{height:,.0f}', ha='center', va='bottom', fontsize=9)
+                self.ax.text(bar.get_x() + bar.get_width() / 2., height, f'P{height:,.0f}', ha='center', va='bottom',
+                             fontsize=9)
 
         self.canvas.draw()

@@ -1,13 +1,16 @@
-# Payroll Rates and Multipliers
 rates:
-  daily_salary: 600.00
-  overtime_hourly_rate: 75.00  # (600 / 8 hrs)
-  night_diff_multiplier: 0.10  # 10% bonus for Shift 3
+  daily_salary: 600.0
+  overtime_hourly_rate: 75.0
+  night_diff_multiplier: 0.1
 
-# Standard Deductions
+shifts:
+  shift_1: {in: "06:00", out: "14:00"}
+  shift_2: {in: "14:00", out: "22:00"}
+  shift_3: {in: "22:00", out: "06:00"}
+
 deductions:
-  deduction_1: 50.00
-  deduction_2: 0.00
-  deduction_3: 0.00
+  deduction_1: 50.0
+  deduction_2: 0.0
+  deduction_3: 0.0
 
 

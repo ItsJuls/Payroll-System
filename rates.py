@@ -2,56 +2,86 @@ import yaml
 import os
 from datetime import datetime
 
+
 class RatesManager:
     def __init__(self):
         self.filepath = "settings.yml"
-        self.default_settings = {
-            "rates": {
-                "daily_salary": 600.00,
-                "overtime_hourly_rate": 75.00,
-                "night_diff_multiplier": 0.10
-            }
-        }
         self.ensure_file_exists()
 
     def ensure_file_exists(self):
         if not os.path.exists(self.filepath):
-            self.save_all_settings(self.default_settings)
+            default_data = {
+                "rates": {
+                    "daily_salary": 600.0,
+                    "overtime_hourly_rate": 75.0,
+                    "night_diff_multiplier": 0.1
+                },
+                "shifts": {
+                    "shift_1": {"in": "06:00", "out": "14:00"},
+                    "shift_2": {"in": "14:00", "out": "22:00"},
+                    "shift_3": {"in": "22:00", "out": "06:00"}
+                },
+                "deductions": {
+                    "deduction_1": 50.0, "deduction_2": 0.0, "deduction_3": 0.0
+                }
+            }
+            self.save_all_settings(default_data)
 
     def get_all_settings(self):
-        with open(self.filepath, 'r') as file:
-            return yaml.safe_load(file)
+        try:
+            with open(self.filepath, 'r') as file:
+                return yaml.safe_load(file)
+        except:
+            return {}
 
     def save_all_settings(self, new_data):
         with open(self.filepath, 'w') as file:
-            yaml.dump(new_data, file, default_flow_style=False)
+            yaml.dump(new_data, file, default_flow_style=False, sort_keys=False)
 
     def get_today_date(self):
         return datetime.today().strftime("%d/%m/%Y")
 
-    def get_daily_salary(self):
-        return self.get_all_settings()["rates"].get("daily_salary", 600.00)
+    def get_shift_defaults(self, shift_num):
+        settings = self.get_all_settings()
+        shift_key = f"shift_{shift_num}"
+        return settings.get("shifts", {}).get(shift_key, {"in": "00:00", "out": "00:00"})
 
-    def get_overtime_rate(self):
-        return self.get_all_settings()["rates"].get("overtime_hourly_rate", 75.00)
+    def calculate_full_pay(self, shift_num, clock_in, clock_out):
+        """ The master math function for the Dashboard and Payroll reports """
+        settings = self.get_all_settings()
+        rates = settings.get("rates", {})
 
-    def calculate_night_diff(self):
-        base = self.get_daily_salary()
-        multiplier = self.get_all_settings()["rates"].get("night_diff_multiplier", 0.10)
-        return base * multiplier
+        daily_base = rates.get("daily_salary", 600.0)
+        ot_rate = rates.get("overtime_hourly_rate", 75.0)
+        nd_multiplier = rates.get("night_diff_multiplier", 0.1)
 
-    def calculate_overtime_pay(self, clock_in_str, clock_out_str):
         try:
-            t1 = datetime.strptime(clock_in_str, "%H:%M")
-            t2 = datetime.strptime(clock_out_str, "%H:%M")
-            duration = t2 - t1
-            total_hours = duration.total_seconds() / 3600
-            if total_hours < 0:
-                total_hours += 24
-            if total_hours > 8:
-                ot_hours = total_hours - 8
-                ot_rate = self.get_overtime_rate()
-                return round(ot_hours * ot_rate, 2)
-            return 0.0
-        except:
-            return 0.0
+            # 1. Calculate Duration
+            fmt = "%H:%M"
+            t1 = datetime.strptime(clock_in, fmt)
+            t2 = datetime.strptime(clock_out, fmt)
+
+            diff = t2 - t1
+            hours_worked = diff.total_seconds() / 3600
+            if hours_worked < 0: hours_worked += 24  # Handle midnight cross
+
+            # 2. Overtime Math (Anything over 8 hours)
+            ot_pay = 0.0
+            if hours_worked > 8:
+                ot_pay = (hours_worked - 8) * ot_rate
+
+            # 3. Night Differential (Only for Shift 3)
+            nd_pay = (daily_base * nd_multiplier) if int(shift_num) == 3 else 0.0
+
+            # 4. Total Calculation
+            total = daily_base + ot_pay + nd_pay
+
+            return {
+                "regular": round(daily_base, 2),
+                "overtime": round(ot_pay, 2),
+                "night_diff": round(nd_pay, 2),
+                "gross_total": round(total, 2)
+            }
+        except Exception as e:
+            print(f"Math Error: {e}")
+            return {"regular": 0, "overtime": 0, "night_diff": 0, "gross_total": 0}
