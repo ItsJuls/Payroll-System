@@ -6,3 +6,4 @@ sqlite3
 openpyxl
 ctkdateentry
 ctkmessagebox
+pyyaml

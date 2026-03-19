@@ -3,6 +3,7 @@ import sqlite3 as sql
 from CTkMessagebox import CTkMessagebox as cmb
 from ctkdateentry import CTkDateEntry as DateEntry, CTkStringVar
 from datetime import datetime
+from rates import RatesManager
 
 class ManagementFrame(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
@@ -20,7 +21,7 @@ class ManagementFrame(ctk.CTkFrame):
         self.header = ctk.CTkLabel(self, text="Employee Management and Attendance Tracking", font=("Arial", 28, "bold"))
         self.header.grid(row=0, column=0, padx=20, pady=(20, 5), sticky="nw", columnspan=3)
 
-        self.date_var = CTkStringVar(value="")
+        self.date_var = CTkStringVar(value=RatesManager.get_today_date(self))
 
         self.date_entry = DateEntry(self.date_controls_frame, width=150, variable=self.date_var, state="readonly")
         self.date_entry.grid(row=3, column=1, pady=(1, 0), padx=(0, 10), sticky="w")
@@ -53,6 +54,9 @@ class ManagementFrame(ctk.CTkFrame):
         self.save_all_button = ctk.CTkButton(self.accent_frame, text="Save All Entries", fg_color="green",
                                              hover_color="#006400", command=self.bulk_save_employees)
         self.save_all_button.place(relx=0.25, rely=0.95, anchor="sw")
+
+        self.load_attendance()
+
 
     def init_db(self):
         conn = sql.connect(self.db_name)
