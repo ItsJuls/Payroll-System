@@ -2,6 +2,7 @@ import json, datetime, csv, customtkinter as ctk, os
 from PIL import Image
 from dashboard import DashboardFrame
 from management import ManagementFrame
+from payroll import PayrollFrame
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
@@ -71,8 +72,8 @@ class PayrollSystem(ctk.CTk):
 
     def show_payroll(self):
         self.clear_content()
-        label = ctk.CTkLabel(self.content_frame, text="Payroll Processing", font=("Arial", 24))
-        label.pack(anchor="nw")
+        self.payroll = PayrollFrame(master=self.content_frame, fg_color="transparent")
+        self.payroll.pack(fill="both", expand=True)
 
 
 if __name__ == "__main__":
