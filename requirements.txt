@@ -4,4 +4,5 @@ matplotlib
 pandas
 sqlite3
 openpyxl
-tkcalendar
+ctkdateentry
+ctkmessagebox
