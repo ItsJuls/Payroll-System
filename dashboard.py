@@ -47,24 +47,20 @@ class DashboardFrame(ctk.CTkFrame):
         self.accent_frame.grid_propagate(False)
         self.accent_frame.pack_propagate(False)
 
-        self.employees_present = ctk.CTkLabel(self.accent_frame, text="Employees\nPresent", font=("Arial", 16))
-        self.employees_present.place(relx=0.20, rely=0.05, anchor="n")
 
-        self.total_reg_pay = ctk.CTkLabel(self.accent_frame, text="Total\nRegular Pay", font=("Arial", 16))
-        self.total_reg_pay.place(relx=0.35, rely=0.05, anchor="n")
+        self.add_label("6 AM - 2 PM", relx=0.075, rely=0.2, anchor="n")
+        self.add_label("2 PM - 10 PM", relx=0.075, rely=0.4, anchor="n")
+        self.add_label("10 PM - 6 AM", relx=0.075, rely=0.6, anchor="n")
+        self.add_label("Employees\nPresent", relx=0.20, rely=0.05, anchor="n")
+        self.add_label("Total\nRegular Pay", relx=0.35, rely=0.05, anchor="n")
+        self.add_label("Total\nOvertime Pay", relx=0.50, rely=0.05, anchor="n")
+        self.add_label("Total Night\nDifferential", relx=0.65, rely=0.05, anchor="n")
+        self.add_label("Total Daily Payroll", relx=0.65, rely=0.9, anchor="s")
+        self.add_label("Cost Per Shift", relx=0.80, rely=0.05, anchor="n")
 
-        self.total_ot_pay = ctk.CTkLabel(self.accent_frame, text="Total\nOvertime Pay", font=("Arial", 16))
-        self.total_ot_pay.place(relx=0.50, rely=0.05, anchor="n")
-
-        self.total_night_diff = ctk.CTkLabel(self.accent_frame, text="Total Night\nDifferential", font=("Arial", 16))
-        self.total_night_diff.place(relx=0.65, rely=0.05, anchor="n")
-
-        self.total_night_diff = ctk.CTkLabel(self.accent_frame, text="Total Daily Payroll", font=("Arial", 16))
-        self.total_night_diff.place(relx=0.65, rely=0.9, anchor="s")
-
-
-        self.cost_per_shift = ctk.CTkLabel(self.accent_frame, text="Cost Per Shift", font=("Arial", 16))
-        self.cost_per_shift.place(relx=0.80, rely=0.05, anchor="n")
+    def add_label(self, text, relx, rely, anchor):
+        label = ctk.CTkLabel(self.accent_frame, text=text, font=("Arial", 16))
+        label.place(relx=relx, rely=rely, anchor=anchor)
 
 
 
