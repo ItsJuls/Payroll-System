@@ -54,7 +54,7 @@ class ImportExportFrame(ctk.CTkFrame):
         ctk.CTkLabel(self.import_frame, text="Import Data", font=("Arial", 22, "bold")).pack(pady=(20, 10))
         ctk.CTkButton(self.import_frame, text="Download Template", fg_color="transparent", border_width=1,
                       command=self.download_template).pack(pady=5, padx=40, fill="x")
-        ctk.CTkButton(self.import_frame, text="Upload CSV/Excel", height=45, fg_color="#1E8449",
+        ctk.CTkButton(self.import_frame, text="Upload CSV/Excel", height=45, fg_color="#1E8449", hover_color="#196B3C",
                       command=self.import_data).pack(pady=20, padx=40, fill="x")
 
         self.maint_frame = ctk.CTkFrame(self, fg_color="#1a1a1a", height=60, corner_radius=0)
