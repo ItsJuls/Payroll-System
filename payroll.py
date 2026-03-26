@@ -91,50 +91,69 @@ class PayrollFrame(ctk.CTkFrame):
         self.weekly_frame1 = WeeklyPayrollFrame(self, self.date_var, self.dataview_var, self.employee_var)
         self.weekly_frame1.grid(row=2, column=0, pady=(15, 0), sticky="ns")
 
-        next_week_date = CTkStringVar(value=(datetime.strptime(self.date_var.get(), "%d/%m/%Y") + timedelta(days=7)).strftime("%d/%m/%Y"))
+        self.next_week_date = CTkStringVar(value=(datetime.strptime(self.date_var.get(), "%d/%m/%Y") + timedelta(days=7)).strftime("%d/%m/%Y"))
 
-        self.weekly_frame2 = WeeklyPayrollFrame(self, next_week_date, self.dataview_var, self.employee_var)
+        self.weekly_frame2 = WeeklyPayrollFrame(self, self.next_week_date, self.dataview_var, self.employee_var)
         self.weekly_frame2.grid(row=3, column=0, pady=(15, 0), sticky="ns")
 
 
-        """ BIWEEKLY TOTALS """
+        """ BIWEEKLY SUMMARY """
         self.summary_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.summary_frame.grid(row=4, column=0, pady=20, sticky="ns")
 
         self.summary_header = ctk.CTkLabel(self.summary_frame, text="BIWEEKLY  SUMMARY", font=("Arial", 20, "bold"))
         self.summary_header.grid(row=0, column=0, columnspan=2, padx=10, pady=(0, 15), sticky="n")
 
+        # DEFAULT / PLACEHOLDER VALUES
+        self.summary_labels = {
+            "reg": ctk.StringVar(value="Regular"), "ot": ctk.StringVar(value="Overtime"),
+            "nd": ctk.StringVar(value="Night Differential"), "gross_total": ctk.StringVar(value="GROSS PAY"),
+            "d1": "SSS", "d2": "PhilHeath", "d3": "Pag-IBIG", "net_total": "NET PAY"
+        }
+
+        self.summary_data = {
+            "reg": ctk.StringVar(value="0.00"), "ot": ctk.StringVar(value="0.00"), "nd": ctk.StringVar(value="0.00"),
+            "gross_total": ctk.StringVar(value="0.00"),
+            "d1": ctk.StringVar(value="0.00"), "d2": ctk.StringVar(value="0.00"), "d3": ctk.StringVar(value="0.00"),
+            "net_total": ctk.StringVar(value="0.00"),
+        }
+
+        summary_keys = []
+        for misc, key in enumerate(self.summary_data.keys()):
+            summary_keys.append(key)
+        #print(summary_keys)
+
         # GROSS PAY
         self.gross_pay_frame = ctk.CTkFrame(self.summary_frame, fg_color="transparent")
         self.gross_pay_frame.grid(row=1, column=0, padx=40, sticky="ns")
-        vertical_labels = ["Regular Pay", "Overtime Pay", "Night Differential", "GROSS PAY"]
+        #vertical_labels = ["Regular Pay", "Overtime Pay", "Night Differential", "GROSS PAY"]
 
-        for row, text in enumerate(vertical_labels, 0):
-            label = ctk.CTkLabel(self.gross_pay_frame, text=text, font=("Arial", 16, "bold"))
+        for i, row in enumerate(range(4), 0):
+            label = ctk.CTkLabel(self.gross_pay_frame, textvariable=self.summary_labels[summary_keys[i]], font=("Arial", 16, "bold"))
             label.grid(row=row, column=0, padx=20, pady=(0, 10), sticky="nw")
 
-        for row, text in enumerate(vertical_labels, 0):
+        for i, row in enumerate(range(4), 0):
             if row != 3:
-                label = ctk.CTkLabel(self.gross_pay_frame, text=str(row), font=("Arial", 14))
+                label = ctk.CTkLabel(self.gross_pay_frame, textvariable=self.summary_data[summary_keys[i]], font=("Arial", 14))
             else:
-                label = ctk.CTkLabel(self.gross_pay_frame, text=str(row), font=("Arial", 16, "bold"))
+                label = ctk.CTkLabel(self.gross_pay_frame, textvariable=self.summary_data[summary_keys[i]], font=("Arial", 16, "bold"))
 
             label.grid(row=row, column=1, padx=(40, 0), pady=(0, 10), sticky="nw")
 
         # DEDUCTIONS
         self.deduction_frame = ctk.CTkFrame(self.summary_frame, fg_color="transparent")
         self.deduction_frame.grid(row=1, column=1, padx=40, sticky="ns")
-        vertical_labels = ["Deduction 1", "Deduction 2", "Deduction 3", "NET PAY"]
+        #vertical_labels = ["Deduction 1", "Deduction 2", "Deduction 3", "NET PAY"]
 
-        for row, text in enumerate(vertical_labels, 0):
-            label = ctk.CTkLabel(self.deduction_frame, text=text, font=("Arial", 16, "bold"))
+        for i, row in enumerate(range(4), 4):
+            label = ctk.CTkLabel(self.deduction_frame, text=self.summary_labels[summary_keys[i]], font=("Arial", 16, "bold"))
             label.grid(row=row, column=0, padx=20, pady=(0, 10), sticky="nw")
 
-        for row, text in enumerate(vertical_labels, 0):
+        for i, row in enumerate(range(4), 4):
             if row != 3:
-                label = ctk.CTkLabel(self.deduction_frame, text=str(row), font=("Arial", 14))
+                label = ctk.CTkLabel(self.deduction_frame, textvariable=self.summary_data[summary_keys[i]], font=("Arial", 14))
             else:
-                label = ctk.CTkLabel(self.deduction_frame, text=str(row), font=("Arial", 16, "bold"))
+                label = ctk.CTkLabel(self.deduction_frame, textvariable=self.summary_data[summary_keys[i]], font=("Arial", 16, "bold"))
 
             label.grid(row=row, column=1, padx=(40, 0), pady=(0, 10), sticky="nw")
 
@@ -144,23 +163,11 @@ class PayrollFrame(ctk.CTkFrame):
         self.export_button.grid(row=1, column=2, padx=80, pady=(0, 10), sticky="nsew")
 
 
-        """ REFRESH DATA SETUP """
+        """ REFRESH THE SCREEN """
         self.refresh_payroll()
 
 
-
     def refresh_payroll(self):
-        '''
-
-        conn = sql.connect("payroll_system.db")
-        cursor = conn.cursor()
-
-        for i in range(7):
-            current_day = start_of_week + timedelta(days=7)
-            day_str = current_day.strftime("%Y-%m-%d")
-            cursor.execute("SELECT shift, clock_in, clock_out FROM attendance WHERE date = ?", (day_str,))
-            day_rows = cursor.fetchall()'''
-
         # update employee details
         if self.employee_var.get() != "":
             conn = sql.connect("payroll_system.db")
@@ -174,16 +181,71 @@ class PayrollFrame(ctk.CTkFrame):
             self.e_id_var.set(e_details[0][0])
             self.e_role_var.set(e_details[0][1])
 
+        # update the date control for the 2nd week's data
+        self.next_week_date.set((datetime.strptime(self.date_var.get(), "%d/%m/%Y") + timedelta(days=7)).strftime("%d/%m/%Y"))
+
         # update weekly header labels and data
         self.weekly_frame1.update_all()
         self.weekly_frame2.update_all()
 
+        # update biweekly summary labels
+        if self.dataview_var.get() == "cost_view":
+            self.summary_labels['reg'].set("Regular Pay")
+            self.summary_labels['ot'].set("Overtime Pay")
+            self.summary_labels['gross_total'].set("GROSS PAY")
+
+            total_reg = self.weekly_frame1.total_reg_pay + self.weekly_frame2.total_reg_pay
+            total_ot = self.weekly_frame1.total_ot_pay + self.weekly_frame2.total_ot_pay
+            total_nd = self.weekly_frame1.total_nd_pay + self.weekly_frame2.total_nd_pay
+        else:
+            self.summary_labels['reg'].set("Regular Hours")
+            self.summary_labels['ot'].set("Overtime Hours")
+            self.summary_labels['gross_total'].set("GRAND TOTAL HOURS")
+
+            total_reg = self.weekly_frame1.total_reg_hours + self.weekly_frame2.total_reg_hours
+            total_ot = self.weekly_frame1.total_ot_hours + self.weekly_frame2.total_ot_hours
+            total_nd = "-"
+
+        grand_total = self.weekly_frame1.grand_total + self.weekly_frame2.grand_total
+
+        # update biweekly summary data
+        # gross pay
+        if self.dataview_var.get() == "cost_view":
+            self.summary_data['reg'].set(f"₱ {total_reg:,.2f}")
+            self.summary_data['ot'].set(f"₱ {total_ot:,.2f}")
+            self.summary_data['nd'].set(f"₱ {total_nd:,.2f}")
+            self.summary_data['gross_total'].set(f"₱ {grand_total:,.2f}")
+        else:
+            self.summary_data['reg'].set(f"{total_reg:,.2f}")
+            self.summary_data['ot'].set(f"{total_ot:,.2f}")
+            self.summary_data['nd'].set("-")
+            self.summary_data['gross_total'].set(f"{grand_total:,.2f}")
+
+        # deductions and net pay
+        deduct_list = self.rm.get_all_settings().get("deductions", {})
+        net_total = grand_total
+
+        for i, key in enumerate(deduct_list, 1):
+            deduct = grand_total * deduct_list[key]
+            net_total -= deduct
+
+            if self.dataview_var.get() == "cost_view":
+                self.summary_data[f"d{i}"].set(f"-₱ {deduct:,.2f}")
+            else:
+                self.summary_data[f"d{i}"].set("-")
+
+        if self.dataview_var.get() == "cost_view":
+            self.summary_data['net_total'].set(f"₱ {net_total:,.2f}")
+        else:
+            self.summary_data['net_total'].set("-")
 
 
 
 class WeeklyPayrollFrame(ctk.CTkFrame):
     def __init__(self, master, raw_date, dataview_mode, e_name, **kwargs):
         super().__init__(master, **kwargs)
+
+        self.rm = RatesManager()
 
         self.raw_date = raw_date
         self.dataview_mode = dataview_mode
@@ -208,7 +270,7 @@ class WeeklyPayrollFrame(ctk.CTkFrame):
 
         # DEFAULT / PLACEHOLDER VALUES
         self.vertical_labels = {
-            "reg": ctk.StringVar(value="Regular"), "ot": ctk.StringVar(value="Overtime"), "nd": ctk.StringVar(value="Night")
+            "reg": ctk.StringVar(value="Regular"), "ot": ctk.StringVar(value="Overtime"), "nd": ctk.StringVar(value="Night Differential")
         }
 
         self.horizontal_labels = {
@@ -238,7 +300,13 @@ class WeeklyPayrollFrame(ctk.CTkFrame):
         #   return
 
         self.start_of_week = selected_date - timedelta(days=selected_date.weekday())
-        self.db_date_str = self.start_of_week.strftime("%Y-%m-%d")
+
+        self.total_reg_pay = 0.0
+        self.total_ot_pay = 0.0
+        self.total_nd_pay = 0.0
+        self.total_reg_hours = 0.0
+        self.total_ot_hours = 0.0
+        self.grand_total = 0.0
 
         self.add_header_labels()
         self.add_placeholder_data()
@@ -269,6 +337,17 @@ class WeeklyPayrollFrame(ctk.CTkFrame):
 
 
     def update_all(self):
+        # reset these variables for a screen refresh
+        selected_date = datetime.strptime(self.raw_date.get(), "%d/%m/%Y")
+        self.start_of_week = selected_date - timedelta(days=selected_date.weekday())
+
+        self.total_reg_pay = 0.0
+        self.total_ot_pay = 0.0
+        self.total_nd_pay = 0.0
+        self.total_reg_hours = 0.0
+        self.total_ot_hours = 0.0
+        self.grand_total = 0.0
+
         self.update_labels()
         self.update_data()
 
@@ -278,28 +357,86 @@ class WeeklyPayrollFrame(ctk.CTkFrame):
         if self.dataview_mode.get() == "cost_view":
             self.vertical_labels["reg"].set("Regular Pay")
             self.vertical_labels["ot"].set("Overtime Pay")
-            self.vertical_labels["nd"].set("Night Differential")
+            #self.vertical_labels["nd"].set("Night Differential")
 
         elif self.dataview_mode.get() == "hour_view":
             self.vertical_labels["reg"].set("Regular Hours")
             self.vertical_labels["ot"].set("Overtime Hours")
-            self.vertical_labels["nd"].set("Night Hours")
+            #self.vertical_labels["nd"].set("Night Hours")
 
         # HORIZONTAL LABELS (DATES)
         for i, key in enumerate(self.horizontal_labels):
-            if key == "total":
-                break
+            if key == "total": break
 
             new_date = self.start_of_week + timedelta(days=i)
             self.horizontal_labels[key].set(new_date.strftime("%b. %d"))
 
 
     def update_data(self):
-        # need to cycle through all dates
         conn = sql.connect("payroll_system.db")
         cursor = conn.cursor()
-        cursor.execute("SELECT shift, clock_in, clock_out FROM attendance WHERE date = ? AND employee_name = ?",
-                       (self.db_date_str, self.e_name.get()))
-        e_details = cursor.fetchall()
+
+        # cycle through all days of the week for the employee
+        shift_details = []
+        for i in range(8):
+            db_date_str = (self.start_of_week + timedelta(days=i)).strftime("%Y-%m-%d")
+
+            cursor.execute("SELECT shift, clock_in, clock_out FROM attendance WHERE date = ? AND employee_name = ?",
+                           (db_date_str, self.e_name.get()))
+            raw_detail = cursor.fetchone()
+
+            if raw_detail is None: raw_detail = (0, 0, 0)
+            shift_details.append(raw_detail)
+
         conn.close()
-        print(e_details)
+        #print(shift_details)
+
+        day_keys = ["mon", "tue", "wed", "thu", "fri", "sat", "sun", "total"]
+        i = 0
+
+        # update each day's placeholder data
+        for s_num, cin, cout in shift_details:
+            if s_num == 0:
+                self.weekly_data['reg'][day_keys[i]].set('-')
+                self.weekly_data['ot'][day_keys[i]].set('-')
+                self.weekly_data['nd'][day_keys[i]].set('-')
+                i = i + 1
+                continue
+
+            pay = self.rm.calculate_full_pay(s_num, cin, cout)
+
+            # compute running totals
+            self.total_reg_pay += pay['regular']
+            self.total_ot_pay += pay['overtime']
+            self.total_nd_pay += pay['night_diff']
+            self.total_reg_hours += pay['reg_hours']
+            self.total_ot_hours += pay['ot_hours']
+
+            if self.dataview_mode.get() == "cost_view":
+                self.weekly_data['reg'][day_keys[i]].set(f"₱ {pay['regular']:,.2f}")
+                self.weekly_data['ot'][day_keys[i]].set(f"₱ {pay['overtime']:,.2f}")
+                self.weekly_data['nd'][day_keys[i]].set(f"₱ {pay['night_diff']:,.2f}")
+            else:
+                self.weekly_data['reg'][day_keys[i]].set(f"{pay['reg_hours']:,.2f}")
+                self.weekly_data['ot'][day_keys[i]].set(f"{pay['ot_hours']:,.2f}")
+                self.weekly_data['nd'][day_keys[i]].set('-')
+
+            i = i + 1
+
+        # update totals
+        if self.dataview_mode.get() == "cost_view":
+            self.weekly_data['reg']['total'].set(f"₱ {self.total_reg_pay:,.2f}")
+            self.weekly_data['ot']['total'].set(f"₱ {self.total_ot_pay:,.2f}")
+            self.weekly_data['nd']['total'].set(f"₱ {self.total_nd_pay:,.2f}")
+
+            self.grand_total = self.total_reg_pay + self.total_ot_pay + self.total_nd_pay
+            self.weekly_total.set(f"₱ {self.grand_total:,.2f}")
+        else:
+            self.weekly_data['reg']['total'].set(f"{self.total_reg_hours:,.2f}")
+            self.weekly_data['ot']['total'].set(f"{self.total_ot_hours:,.2f}")
+            self.weekly_data['nd']['total'].set("-")
+
+            self.grand_total = self.total_reg_hours + self.total_ot_hours
+            self.weekly_total.set(f"{self.grand_total:,.2f}")
+
+
