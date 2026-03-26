@@ -22,7 +22,7 @@ class RatesManager:
                     "shift_3": {"in": "22:00", "out": "06:00"}
                 },
                 "deductions": {
-                    "deduction_1": 50.0, "deduction_2": 0.0, "deduction_3": 0.0
+                    "sss_rate": 0.045, "phil_health_rate": 0.04, "pag_ibig_rate": 0.02
                 }
             }
             self.save_all_settings(default_data)
@@ -67,8 +67,10 @@ class RatesManager:
 
             # 2. Overtime Math (Anything over 8 hours)
             ot_pay = 0.0
+            ot_hours_worked = 0.0
             if hours_worked > 8:
-                ot_pay = (hours_worked - 8) * ot_rate
+                ot_hours_worked = hours_worked - 8
+                ot_pay = ot_hours_worked * ot_rate
 
             # 3. Night Differential (Only for Shift 3)
             nd_pay = (daily_base * nd_multiplier) if int(shift_num) == 3 else 0.0
@@ -80,8 +82,10 @@ class RatesManager:
                 "regular": round(daily_base, 2),
                 "overtime": round(ot_pay, 2),
                 "night_diff": round(nd_pay, 2),
-                "gross_total": round(total, 2)
+                "gross_total": round(total, 2),
+                "reg_hours": round(hours_worked, 2),
+                "ot_hours": round(ot_hours_worked, 2)
             }
         except Exception as e:
             print(f"Math Error: {e}")
-            return {"regular": 0, "overtime": 0, "night_diff": 0, "gross_total": 0}
+            return {"regular": 0, "overtime": 0, "night_diff": 0, "gross_total": 0, "reg_hours": 0, "ot_hours": 0}
