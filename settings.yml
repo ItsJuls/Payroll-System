@@ -9,8 +9,8 @@ shifts:
   shift_3: {in: "22:00", out: "06:00"}
 
 deductions:
-  deduction_1: 50.0
-  deduction_2: 0.0
-  deduction_3: 0.0
+  sss_rate: 0.045
+  phil_health_rate: 0.04
+  pag_ibig_rate: 0.02
 
 
