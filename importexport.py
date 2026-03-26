@@ -89,7 +89,13 @@ class ImportExportFrame(ctk.CTkFrame):
             cmb(title="Empty", message="No records found for these dates.", icon="info")
             return
 
-        file_path = filedialog.asksaveasfilename(defaultextension=f".{file_type}")
+        ext = "xlsx" if file_type == "excel" else "csv"
+        label = "Excel Files" if file_type == "excel" else "CSV Files"
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=f".{ext}",
+            filetypes=[(label, f"*.{ext}")],
+            initialfile=f"Attendance_{db_start}_to_{db_end}.{ext}"
+        )
         if file_path:
             if file_type == "excel":
                 df.to_excel(file_path, index=False)
@@ -98,7 +104,11 @@ class ImportExportFrame(ctk.CTkFrame):
             cmb(title="Success", message="Export Complete!", icon="check")
 
     def download_template(self):
-        file_path = filedialog.asksaveasfilename(defaultextension=".xlsx", filetypes=[("Excel", "*.xlsx")])
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".xlsx",
+            filetypes=[("Excel", "*.xlsx")],
+            initialfile="Attendance_Import_Template.xlsx"  # ← add this
+        )
         if file_path:
             cols = ["date", "employee_id", "employee_name", "role", "shift", "clock_in", "clock_out"]
             pd.DataFrame(columns=cols).to_excel(file_path, index=False)
@@ -130,13 +140,30 @@ class ImportExportFrame(ctk.CTkFrame):
             cmb(title="Error", message=str(e), icon="cancel")
 
     def export_to_pdf(self):
-        file_path = filedialog.asksaveasfilename(defaultextension=".pdf")
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".pdf",
+            filetypes=[("PDF Files", "*.pdf")],
+            initialfile=f"Attendance_Report_{datetime.now().strftime('%Y%m%d')}.pdf"
+        )
+
         if not file_path: return
         try:
+            raw_start = self.start_var.get()
+            raw_end = self.end_var.get()
+            db_start = datetime.strptime(raw_start, "%d/%m/%Y").strftime("%Y-%m-%d")
+            db_end = datetime.strptime(raw_end, "%d/%m/%Y").strftime("%Y-%m-%d")
+
             conn = sql.connect(self.db_name)
-            df = pd.read_sql_query("SELECT date, employee_name, role, clock_in, clock_out FROM attendance LIMIT 100",
-                                   conn)
+            df = pd.read_sql_query(
+                "SELECT date, employee_name, role, clock_in, clock_out FROM attendance WHERE date BETWEEN ? AND ?",
+                conn, params=(db_start, db_end)
+            )
             conn.close()
+
+            if df.empty:
+                cmb(title="Empty", message="No records found for these dates.", icon="info")
+                return
+
             pdf = FPDF()
             pdf.add_page()
             pdf.set_font("Arial", "B", 16)
@@ -149,7 +176,7 @@ class ImportExportFrame(ctk.CTkFrame):
             pdf.ln()
             pdf.set_font("Arial", "", 9)
             for _, row in df.iterrows():
-                for i in range(len(cols)): pdf.cell(widths[i], 8, str(row[i]), border=1)
+                for i in range(len(cols)): pdf.cell(widths[i], 8, str(row.iloc[i]), border=1)  # ← fix here
                 pdf.ln()
             pdf.output(file_path)
             cmb(title="Success", message="PDF Saved!", icon="check")
