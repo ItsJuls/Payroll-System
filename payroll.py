@@ -4,6 +4,8 @@ from CTkMessagebox import CTkMessagebox as cmb
 from ctkdateentry import CTkDateEntry as DateEntry, CTkStringVar
 from rates import RatesManager
 from datetime import datetime, timedelta
+from tkinter import filedialog
+from fpdf import FPDF
 
 
 class PayrollFrame(ctk.CTkFrame):
@@ -44,8 +46,7 @@ class PayrollFrame(ctk.CTkFrame):
         conn.close()
 
         e_names = []
-        for name, misc in raw_e_names:
-            e_names.append(name)
+        for name, misc in raw_e_names: e_names.append(name)
 
         self.employee_var = ctk.StringVar(value="")
         self.employee_menu = ctk.CTkOptionMenu(self.main_controls_frame, values=e_names, variable=self.employee_var)
@@ -126,7 +127,6 @@ class PayrollFrame(ctk.CTkFrame):
         # GROSS PAY
         self.gross_pay_frame = ctk.CTkFrame(self.summary_frame, fg_color="transparent")
         self.gross_pay_frame.grid(row=1, column=0, padx=40, sticky="ns")
-        #vertical_labels = ["Regular Pay", "Overtime Pay", "Night Differential", "GROSS PAY"]
 
         for i, row in enumerate(range(4), 0):
             label = ctk.CTkLabel(self.gross_pay_frame, textvariable=self.summary_labels[summary_keys[i]], font=("Arial", 16, "bold"))
@@ -143,7 +143,6 @@ class PayrollFrame(ctk.CTkFrame):
         # DEDUCTIONS
         self.deduction_frame = ctk.CTkFrame(self.summary_frame, fg_color="transparent")
         self.deduction_frame.grid(row=1, column=1, padx=40, sticky="ns")
-        #vertical_labels = ["Deduction 1", "Deduction 2", "Deduction 3", "NET PAY"]
 
         for i, row in enumerate(range(4), 4):
             label = ctk.CTkLabel(self.deduction_frame, text=self.summary_labels[summary_keys[i]], font=("Arial", 16, "bold"))
@@ -159,7 +158,7 @@ class PayrollFrame(ctk.CTkFrame):
 
         # EXPORT PAY SLIP
         self.export_button = ctk.CTkButton(self.summary_frame, text="Export Pay Slip (.pdf)", fg_color="#1E8449",
-                                           hover_color="#196B3C", command='self.test')
+                                           hover_color="#196B3C", command=self.export_payslip)
         self.export_button.grid(row=1, column=2, padx=80, pady=(0, 10), sticky="nsew")
 
 
@@ -240,28 +239,123 @@ class PayrollFrame(ctk.CTkFrame):
             self.summary_data['net_total'].set("-")
 
 
+    def export_payslip(self):
+        # prevents the export if no employee was selected
+        if self.employee_var.get() == "":
+            cmb(title="Error", message="Please select an employee and refresh first.", icon="cancel")
+            return
+
+        # forces the data view to be the cost view, if it isn't already
+        if self.dataview_var.get() == "hour_view":
+            self.dataview_var.set("cost_view")
+            self.refresh_payroll()
+
+        start_date = self.weekly_frame1.start_of_week
+        end_date = datetime.strptime(self.date_var.get(), "%d/%m/%Y") + timedelta(days=7)
+
+        # sets the file name
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".pdf",
+            filetypes=[("PDF Files", "*.pdf")],
+            initialfile=f"Payslip_{self.employee_var.get()}_{start_date.strftime('%Y-%m-%d')}"
+                        f"_to_{end_date.strftime('%Y-%m-%d')}.pdf"
+        )
+
+        if not file_path: return
+        try:
+            pdf = FPDF()
+            pdf.add_page(orientation="L", format="A5")
+
+            pdf.set_font("Arial", "B", 16)
+            pdf.cell(190, 10, "Payslip", align="C")
+            pdf.ln()
+
+            pdf.set_font("Arial", "B", 10)
+            pdf.cell(190, 5, f"Pay Period: {start_date.strftime("%b. %d, %Y")} to {end_date.strftime("%b. %d, %Y")}", align="C")
+            pdf.ln()
+            pdf.ln()
+
+            # Employee Details
+            e_detail_width = 35
+            pdf.cell(e_detail_width, 8, "Employee Name:")
+            pdf.set_font("Arial", "", 10)
+            pdf.cell(e_detail_width, 8, self.employee_var.get())
+            pdf.ln()
+
+            pdf.set_font("Arial", "B", 10)
+            pdf.cell(e_detail_width, 5, "Role:")
+            pdf.set_font("Arial", "", 10)
+            pdf.cell(e_detail_width, 5, self.e_role_var.get())
+            pdf.ln()
+            pdf.ln()
+
+            # Headers
+            widths = [48, 47, 48, 47]
+            headers = ["Earnings", "Amount", "Deductions", "Amount"]
+            details_l = ["Regular Pay", "Overtime Pay", "Night Differential", "Gross Salary"]
+            keys = ["reg", "ot", "nd", "gross_total", "net_total"]
+
+            pdf.set_font("Arial", "B", 10)
+            for i, header in enumerate(headers): pdf.cell(widths[i], 8, header, align="C", border=1)
+            pdf.ln()
+
+            # Detail Rows
+            pdf.set_font("Arial", "", 10)
+            total_deduct = 0.0
+
+            for i, label in enumerate(details_l):
+                if i != len(details_l) - 1:
+                    pdf.set_font("Arial", "", 10)
+                    pdf.cell(widths[0], 8, f"  {label}", border=1)
+                    pdf.cell(widths[1], 8, f"{self.summary_data[keys[i]].get()[2:]}", align="C", border=1)
+
+                    pdf.cell(widths[2], 8, f"  {self.summary_labels[f"d{i + 1}"]}", border=1)
+                    pdf.cell(widths[3], 8, f"{self.summary_data[f"d{i+1}"].get()[3:]}", align="C", border=1)
+
+                    total_deduct += float(self.summary_data[f"d{i + 1}"].get()[3:])
+                else:
+                    pdf.set_font("Arial", "B", 10)
+                    pdf.cell(widths[0], 8, f"  {label}", border=1)
+                    pdf.cell(widths[1], 8, f"{self.summary_data[keys[i]].get()[2:]}", align="C", border=1)
+
+                    pdf.cell(widths[2], 8, "  Total Deductions", border=1)
+                    pdf.cell(widths[3], 8, f"{total_deduct:,.2f}", align="C", border=1)
+
+                pdf.ln()
+
+            # Net Pay
+            pdf.set_font("Arial", "B", 12)
+            pdf.cell(sum(widths[0:3]), 8, "NET PAY  ", align="R", border=1)
+            pdf.cell(widths[3], 8, self.summary_data['net_total'].get()[2:], align="C", border=1)
+            pdf.ln()
+            pdf.ln()
+
+            # Signature
+            pdf.set_font("Arial", "", 10)
+            pdf.cell(40, 8, "Employee's Signature and Date")
+            pdf.ln()
+            pdf.cell(55, 8, "", border="B")
+            pdf.ln()
+
+            pdf.set_font("Arial", "", 6)
+            pdf.cell(190, 8, "This is a system generated payslip.", align="R")
+
+            pdf.output(file_path)       # saves the PDF file
+
+        except Exception as e:
+            cmb(title="Error", message=str(e), icon="cancel")
+
+
 
 class WeeklyPayrollFrame(ctk.CTkFrame):
     def __init__(self, master, raw_date, dataview_mode, e_name, **kwargs):
         super().__init__(master, **kwargs)
 
         self.rm = RatesManager()
-
         self.raw_date = raw_date
         self.dataview_mode = dataview_mode
         self.e_name = e_name
-        #self.vertical_labels = vertical_labels
-        #self.horizontal_labels = date_labels
 
-        #self.grid_columnconfigure((0, 1, 2, 3, 4, 5, 6), weight=1)
-
-        '''self.weekly_frame = ctk.CTkFrame(self,
-                                         fg_color="transparent",
-                                         corner_radius=10,
-                                         border_color="#1f538d",
-                                         border_width=2,
-                                         width=1000,
-                                         height=180)'''
         self.weekly_frame = ctk.CTkFrame(self, corner_radius=15, border_width=2, border_color="#1f538d")
         self.weekly_frame.grid(row=0, column=0, sticky="ns")
         self.weekly_frame.grid_columnconfigure((0, 1, 2, 3, 4, 5, 6, 7, 8), weight=1)
@@ -293,12 +387,7 @@ class WeeklyPayrollFrame(ctk.CTkFrame):
 
         self.weekly_total = ctk.StringVar(value="1000")
 
-        # try:
         selected_date = datetime.strptime(self.raw_date.get(), "%d/%m/%Y")
-        #self.db_date_str = selected_date.strftime("%Y-%m-%d")
-        # except:
-        #   return
-
         self.start_of_week = selected_date - timedelta(days=selected_date.weekday())
 
         self.total_reg_pay = 0.0
@@ -308,16 +397,18 @@ class WeeklyPayrollFrame(ctk.CTkFrame):
         self.total_ot_hours = 0.0
         self.grand_total = 0.0
 
+        # adds the headers and placeholder data
         self.add_header_labels()
         self.add_placeholder_data()
 
 
     def add_header_labels(self):
-
+        # Vertical
         for row, key in enumerate(self.vertical_labels, 1):
             label = ctk.CTkLabel(self.weekly_frame, textvariable=self.vertical_labels[key], font=("Arial", 16, "bold"))
             label.grid(row=row, column=0, padx=(20, 0), pady=(0, 10), sticky="nw")
 
+        # Horizontal
         for column, key in enumerate(self.horizontal_labels, 1):
             label = ctk.CTkLabel(self.weekly_frame, textvariable=self.horizontal_labels[key], font=("Arial", 16, "bold"))
             label.grid(row=0, column=column, padx=25, pady=10, sticky="n")
@@ -348,6 +439,7 @@ class WeeklyPayrollFrame(ctk.CTkFrame):
         self.total_ot_hours = 0.0
         self.grand_total = 0.0
 
+        # update the labels and data holders
         self.update_labels()
         self.update_data()
 
@@ -357,12 +449,10 @@ class WeeklyPayrollFrame(ctk.CTkFrame):
         if self.dataview_mode.get() == "cost_view":
             self.vertical_labels["reg"].set("Regular Pay")
             self.vertical_labels["ot"].set("Overtime Pay")
-            #self.vertical_labels["nd"].set("Night Differential")
 
         elif self.dataview_mode.get() == "hour_view":
             self.vertical_labels["reg"].set("Regular Hours")
             self.vertical_labels["ot"].set("Overtime Hours")
-            #self.vertical_labels["nd"].set("Night Hours")
 
         # HORIZONTAL LABELS (DATES)
         for i, key in enumerate(self.horizontal_labels):
