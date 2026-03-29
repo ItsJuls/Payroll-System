@@ -39,7 +39,7 @@ class ManagementFrame(ctk.CTkFrame):
                                          border_width=2,
                                          width=1000,
                                          height=400)
-        self.accent_frame.grid(row=4, column=0, columnspan=3, padx=20, pady=20, sticky="n")
+        self.accent_frame.grid(row=4, column=0, columnspan=3, padx=20, pady=20, sticky="ns")
         self.accent_frame.grid_propagate(False)
         self.accent_frame.pack_propagate(False)
 
