@@ -16,6 +16,7 @@ class DashboardFrame(ctk.CTkFrame):
 
         self.grid_columnconfigure((0, 1, 2), weight=1)
         self.grid_rowconfigure(4, weight=1)
+        self.grid_rowconfigure(5, weight=8)
 
         self.header = ctk.CTkLabel(self, text="Dashboard Overview", font=("Arial", 28, "bold"))
         self.header.grid(row=0, column=0, padx=20, pady=(20, 5), sticky="nw", columnspan=3)
@@ -84,7 +85,7 @@ class DashboardFrame(ctk.CTkFrame):
         self.chart_frame.grid(row=5, column=0, columnspan=3, padx=20, pady=(0, 20), sticky="nsew")
 
         plt.style.use('dark_background')
-        self.fig, self.ax = plt.subplots(figsize=(10, 3), dpi=100)
+        self.fig, self.ax = plt.subplots(figsize=(10, 8), dpi=100)
         self.fig.patch.set_facecolor('#2b2b2b')
         self.ax.set_facecolor('#2b2b2b')
 
@@ -161,13 +162,13 @@ class DashboardFrame(ctk.CTkFrame):
         selected_day_idx = selected_date.weekday()
         bars[selected_day_idx].set_color('#f39c12')
 
-        self.ax.set_title(f"Weekly Payroll Trend (Week of {start_of_week.strftime('%d %b')})", pad=10)
-        self.ax.set_ylabel("Total PhP")
+        self.ax.set_title(f"Weekly Payroll Trend (Week of {start_of_week.strftime('%d %b')})", pad=10, fontsize=20)
+        self.ax.set_ylabel("Total PhP", fontsize=20)
 
         for bar in bars:
             height = bar.get_height()
             if height > 0:
                 self.ax.text(bar.get_x() + bar.get_width() / 2., height, f'P{height:,.0f}', ha='center', va='bottom',
-                             fontsize=9)
+                             fontsize=14)
 
         self.canvas.draw()
