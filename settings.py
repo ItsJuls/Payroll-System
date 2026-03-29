@@ -29,9 +29,9 @@ class SettingsFrame(ctk.CTkFrame):
             "Regular Pay Rate (Php / 8 hours)",
             "Overtime Pay Rate (Php / hour)",
             "Night Differential (Decimal e.g., 0.10)",
-            "Deduction Rate 1",
-            "Deduction Rate 2",
-            "Deduction Rate 3",
+            "SSS Contribution Rate",
+            "PhilHealth Contribution Rate",
+            "Pag-IBIG Contribution Rate",
             "Shift 1: Start Time (HH:MM)", "Shift 1: End Time (HH:MM)",
             "Shift 2: Start Time (HH:MM)", "Shift 2: End Time (HH:MM)",
             "Shift 3: Start Time (HH:MM)", "Shift 3: End Time (HH:MM)"
@@ -74,9 +74,9 @@ class SettingsFrame(ctk.CTkFrame):
                                                                        str(rates.get("night_diff_multiplier", "0.00")))
 
         # Fill Deductions
-        self.entries["Deduction Rate 1"].insert(0, str(deductions.get("deduction_1", "0.00")))
-        self.entries["Deduction Rate 2"].insert(0, str(deductions.get("deduction_2", "0.00")))
-        self.entries["Deduction Rate 3"].insert(0, str(deductions.get("deduction_3", "0.00")))
+        self.entries["SSS Contribution Rate"].insert(0, str(deductions.get("sss_rate", "0.00")))
+        self.entries["PhilHealth Contribution Rate"].insert(0, str(deductions.get("phil_health_rate", "0.00")))
+        self.entries["Pag-IBIG Contribution Rate"].insert(0, str(deductions.get("pag_ibig_rate", "0.00")))
 
         # Fill Shifts
         for i in range(1, 4):
@@ -101,9 +101,9 @@ class SettingsFrame(ctk.CTkFrame):
                                 "out": self.entries["Shift 3: End Time (HH:MM)"].get()}
                 },
                 "deductions": {
-                    "deduction_1": float(self.entries["Deduction Rate 1"].get()),
-                    "deduction_2": float(self.entries["Deduction Rate 2"].get()),
-                    "deduction_3": float(self.entries["Deduction Rate 3"].get())
+                    "sss_rate": float(self.entries["Deduction Rate 1"].get()),
+                    "phil_health_rate": float(self.entries["Deduction Rate 2"].get()),
+                    "pag_ibig_rate": float(self.entries["Deduction Rate 3"].get())
                 }
             }
 
