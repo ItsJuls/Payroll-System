@@ -89,6 +89,10 @@ class PayrollFrame(ctk.CTkFrame):
         self.e_role_display = ctk.CTkLabel(self.e_details_frame, textvariable=self.e_role_var, font=("Arial", 14, "bold"))
         self.e_role_display.grid(row=1, column=1, padx=10, pady=(0, 10), sticky="w")
 
+        """ SCROLLABLE FRAME """
+        self.scrollable_frame = ctk.CTkScrollableFrame(self, fg_color="transparent")
+        self.scrollable_frame.grid(row=2, column=0, sticky="nsew")
+        self.scrollable_frame.columnconfigure(0, weight=1)
 
         """ SCROLLABLE FRAME """
         self.scrollable_frame = ctk.CTkScrollableFrame(self, fg_color="transparent")
