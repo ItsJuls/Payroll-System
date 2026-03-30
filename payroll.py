@@ -15,6 +15,7 @@ class PayrollFrame(ctk.CTkFrame):
         self.rm = RatesManager()
 
         self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(2, weight=1)
 
         self.header = ctk.CTkLabel(self, text="Payroll Processing", font=("Arial", 28, "bold"))
         self.header.grid(row=0, column=0, padx=20, pady=(20, 5), sticky="nw")
@@ -87,20 +88,24 @@ class PayrollFrame(ctk.CTkFrame):
         self.e_role_display = ctk.CTkLabel(self.e_details_frame, textvariable=self.e_role_var, font=("Arial", 14, "bold"))
         self.e_role_display.grid(row=1, column=1, padx=10, pady=(0, 10), sticky="w")
 
+        """ SCROLLABLE FRAME """
+        self.scrollable_frame = ctk.CTkScrollableFrame(self, fg_color="transparent")
+        self.scrollable_frame.grid(row=2, column=0, sticky="nsew")
+        self.scrollable_frame.columnconfigure(0, weight=1)
 
         """ WEEKLY PAYROLL DATA """
-        self.weekly_frame1 = WeeklyPayrollFrame(self, self.date_var, self.dataview_var, self.employee_var)
-        self.weekly_frame1.grid(row=2, column=0, pady=(15, 0), sticky="ns")
+        self.weekly_frame1 = WeeklyPayrollFrame(self.scrollable_frame, self.date_var, self.dataview_var, self.employee_var)
+        self.weekly_frame1.grid(row=0, column=0, pady=(15, 0), sticky="ns")
 
         self.next_week_date = CTkStringVar(value=(datetime.strptime(self.date_var.get(), "%d/%m/%Y") + timedelta(days=7)).strftime("%d/%m/%Y"))
 
-        self.weekly_frame2 = WeeklyPayrollFrame(self, self.next_week_date, self.dataview_var, self.employee_var)
-        self.weekly_frame2.grid(row=3, column=0, pady=(15, 0), sticky="ns")
+        self.weekly_frame2 = WeeklyPayrollFrame(self.scrollable_frame, self.next_week_date, self.dataview_var, self.employee_var)
+        self.weekly_frame2.grid(row=1, column=0, pady=(15, 0), sticky="ns")
 
 
         """ BIWEEKLY SUMMARY """
-        self.summary_frame = ctk.CTkFrame(self, fg_color="transparent")
-        self.summary_frame.grid(row=4, column=0, pady=20, sticky="ns")
+        self.summary_frame = ctk.CTkFrame(self.scrollable_frame, fg_color="transparent")
+        self.summary_frame.grid(row=2, column=0, pady=20, sticky="ns")
 
         self.summary_header = ctk.CTkLabel(self.summary_frame, text="BIWEEKLY  SUMMARY", font=("Arial", 20, "bold"))
         self.summary_header.grid(row=0, column=0, columnspan=2, padx=10, pady=(0, 15), sticky="n")
